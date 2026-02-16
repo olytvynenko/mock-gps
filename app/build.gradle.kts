@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mock_gps"
+    namespace = "com.lakeguard.mock_gps"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.mock_gps"
+        applicationId = "com.lakeguard.mock_gps"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

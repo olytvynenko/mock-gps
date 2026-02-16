@@ -1,4 +1,4 @@
-package com.example.mock_gps.ui.theme
+package com.lakeguard.mock_gps.ui.theme
 
 import android.app.Activity
 import android.os.Build

@@ -1,4 +1,4 @@
-package com.example.mock_gps // <-- CHANGE to match your namespace/folder
+package com.lakeguard.mock_gps
 
 import android.Manifest
 import android.content.Context
@@ -154,7 +154,7 @@ private fun injectProvider(lm: LocationManager, provider: String, lat: Double, l
 
 @Suppress("DEPRECATION", "WrongConstant")
 private fun ensureFreshTestProvider(lm: LocationManager, provider: String) {
-    // Key change: remove then add. This avoids the “provider exists but isn’t test provider” crash.
+    // Key change: remove then add. This avoids the "provider exists but isn't test provider" crash.
     runCatching { lm.removeTestProvider(provider) }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

@@ -1,4 +1,4 @@
-package com.example.mock_gps
+package com.lakeguard.mock_gps
 
 import org.junit.Test
 
