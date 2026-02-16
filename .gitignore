@@ -1,0 +1,72 @@
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+release/
+
+# Gradle
+.gradle/
+build/
+
+# Local configuration
+local.properties
+
+# Android Studio / IntelliJ IDEA
+*.iml
+.idea/
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+*.ipr
+*.iws
+
+# Android Studio Navigation editor
+.navigation/
+
+# Keystore and signing (do not commit secrets)
+*.jks
+*.keystore
+
+# External native build
+.externalNativeBuild/
+.cxx/
+
+# Android Profiling
+*.hprof
+
+# OS files
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+
+# Logs and temp
+*.log
+*.tmp
+*.temp
+*.swp
+*~
+
+# Capture files from device/simulator
+captures/
+
+# Kotlin
+*.kotlin_module
+
+# Misc
+*.orig
