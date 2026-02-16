@@ -16,9 +16,18 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
@@ -38,6 +47,15 @@ class MainActivity : ComponentActivity() {
                     var lonText by remember { mutableStateOf("31.1656") }
                     var status by remember {
                         mutableStateOf("Setup: Developer options → Select mock location app → this app.")
+                    }
+                    var mockingEnabled by remember { mutableStateOf(true) }
+                    var selectedLatLng by remember { mutableStateOf(LatLng(48.3794, 31.1656)) }
+                    val cameraPositionState = rememberCameraPositionState {
+                        position = CameraPosition.fromLatLngZoom(selectedLatLng, 6f)
+                    }
+
+                    LaunchedEffect(selectedLatLng) {
+                        cameraPositionState.animate(CameraUpdateFactory.newLatLng(selectedLatLng))
                     }
 
                     val fineGranted = remember {
@@ -75,11 +93,37 @@ class MainActivity : ComponentActivity() {
                             Spacer(Modifier.height(12.dp))
                         }
 
+                        Text("Pick on map", style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(8.dp))
+                        GoogleMap(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(240.dp),
+                            cameraPositionState = cameraPositionState,
+                            onMapClick = { clicked ->
+                                if (!mockingEnabled) {
+                                    status = "Mocking is disabled. Enable it to pick a map location."
+                                    return@GoogleMap
+                                }
+                                selectedLatLng = clicked
+                                latText = formatCoordinate(clicked.latitude)
+                                lonText = formatCoordinate(clicked.longitude)
+                                status = "Picked from map: ${latText}, ${lonText}"
+                            }
+                        ) {
+                            Marker(
+                                state = MarkerState(position = selectedLatLng),
+                                title = "Mock location"
+                            )
+                        }
+                        Spacer(Modifier.height(12.dp))
+
                         OutlinedTextField(
                             value = latText,
                             onValueChange = { latText = it },
                             label = { Text("Latitude") },
                             singleLine = true,
+                            enabled = mockingEnabled,
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(Modifier.height(8.dp))
@@ -89,12 +133,39 @@ class MainActivity : ComponentActivity() {
                             onValueChange = { lonText = it },
                             label = { Text("Longitude") },
                             singleLine = true,
+                            enabled = mockingEnabled,
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(Modifier.height(12.dp))
 
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Mock location enabled")
+                            Switch(
+                                checked = mockingEnabled,
+                                onCheckedChange = { enabled ->
+                                    mockingEnabled = enabled
+                                    status = if (enabled) {
+                                        "Mocking enabled. Tap \"Set mock location\" to inject coordinates."
+                                    } else {
+                                        disableMockLocation(lm)
+                                        "Mocking disabled. Test providers removed."
+                                    }
+                                }
+                            )
+                        }
+                        Spacer(Modifier.height(12.dp))
+
                         Button(
                             onClick = {
+                                if (!mockingEnabled) {
+                                    status = "Mocking is disabled. Enable it to inject location."
+                                    return@Button
+                                }
+
                                 val lat = latText.toDoubleOrNull()
                                 val lon = lonText.toDoubleOrNull()
 
@@ -104,6 +175,7 @@ class MainActivity : ComponentActivity() {
                                         "Out of range: lat [-90..90], lon [-180..180]."
                                     else -> {
                                         try {
+                                            selectedLatLng = LatLng(lat, lon)
                                             setMockLocation(lm, lat, lon)
                                             "Mock set: $lat, $lon"
                                         } catch (e: SecurityException) {
@@ -136,6 +208,16 @@ private fun setMockLocation(lm: LocationManager, lat: Double, lon: Double) {
     injectProvider(lm, LocationManager.GPS_PROVIDER, lat, lon)
     // If you want, uncomment after GPS works reliably:
     // injectProvider(lm, LocationManager.NETWORK_PROVIDER, lat, lon)
+}
+
+private fun disableMockLocation(lm: LocationManager) {
+    clearTestProvider(lm, LocationManager.GPS_PROVIDER)
+    clearTestProvider(lm, LocationManager.NETWORK_PROVIDER)
+}
+
+private fun clearTestProvider(lm: LocationManager, provider: String) {
+    runCatching { lm.setTestProviderEnabled(provider, false) }
+    runCatching { lm.removeTestProvider(provider) }
 }
 
 private fun injectProvider(lm: LocationManager, provider: String, lat: Double, lon: Double) {
@@ -186,3 +268,7 @@ private fun buildProviderPropsApi31(): android.location.provider.ProviderPropert
 // Legacy constants to avoid referencing ProviderProperties on minSdk < 31
 private const val LEGACY_POWER_USAGE_LOW = 1
 private const val LEGACY_ACCURACY_FINE = 1
+
+private fun formatCoordinate(value: Double): String {
+    return String.format(Locale.US, "%.6f", value)
+}
